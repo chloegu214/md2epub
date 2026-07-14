@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-zh="使用指南 — MD2EPUB" data-en="How to Use — MD2EPUB">使用指南 — MD2EPUB</title>
+<style>
+  :root {
+    --paper: #f5f2ea; --ink: #1f1d18; --ink-soft: #5c584e;
+    --binding: #2f6f4f; --ribbon: #f4c45c; --rule: #d9d3c4;
+  }
+  * { box-sizing: border-box; }
+  html.zh .lang-en { display: none !important; }
+  html.en .lang-zh { display: none !important; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.9; font-size: 17px;
+  }
+  body::after {
+    content: ""; position: fixed; top: 0; right: 9%;
+    width: 26px; height: 92px; background: var(--ribbon);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); z-index: 10;
+  }
+  .page { max-width: 660px; margin: 0 auto; padding: 0 24px 60px; }
+  .running {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--ink-soft); letter-spacing: .12em;
+    padding: 18px 0 10px; border-bottom: 1px solid var(--rule);
+  }
+  .running a { color: var(--ink-soft); text-decoration: none; }
+  .running a:hover { color: var(--binding); }
+  .lang-btn {
+    background: none; border: 1px solid var(--rule); border-radius: 4px;
+    color: var(--ink-soft); font: inherit; font-size: 12px;
+    padding: 2px 10px; cursor: pointer; letter-spacing: .08em; margin-left: 14px;
+  }
+  .lang-btn:hover { color: var(--binding); border-color: var(--binding); }
+  h1 { font-size: 34px; font-weight: 400; text-align: center; margin: 64px 0 8px; }
+  .lede { text-align: center; color: var(--ink-soft); font-style: italic; margin: 0 0 20px; }
+  .rule.short { border: none; border-top: 2px solid var(--binding); width: 88px; margin: 26px auto 48px; }
+  h2 { font-size: 15px; letter-spacing: .3em; color: var(--binding); font-weight: 400; margin: 56px 0 20px; }
+  .step { display: flex; gap: 16px; margin-bottom: 22px; }
+  .step .no {
+    flex: none; width: 34px; height: 34px; border: 1px solid var(--binding);
+    border-radius: 50%; color: var(--binding);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .step p { margin: 3px 0 0; }
+  .step .sub { font-size: 15px; color: var(--ink-soft); }
+  .ui {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+    font-size: 14px; background: #fdfcf8; border: 1px solid var(--rule);
+    border-radius: 4px; padding: 1px 7px; white-space: nowrap;
+  }
+  .sites { list-style: none; padding: 0; }
+  .sites li { padding: 12px 0; border-bottom: 1px dotted var(--rule); }
+  .sites strong { font-weight: 600; }
+  .sites span { display: block; font-size: 15px; color: var(--ink-soft); }
+  .tip {
+    margin: 30px 0; padding: 20px 26px; background: #fdfcf8;
+    border-left: 3px solid var(--ribbon); font-size: 15.5px;
+  }
+  .faq dt { font-weight: 600; margin-top: 22px; }
+  .faq dd { margin: 6px 0 0; color: var(--ink-soft); font-size: 15.5px; }
+  .colophon {
+    margin-top: 80px; padding-top: 28px; border-top: 1px solid var(--rule);
+    text-align: center; font-size: 14px; color: var(--ink-soft);
+  }
+  .colophon a { color: var(--binding); text-decoration: none; margin: 0 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav class="running">
+    <span><a href="index.html">MD2EPUB</a></span>
+    <span>
+      <span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span> ·
+      <a href="privacy.html"><span class="lang-zh">隐私政策</span><span class="lang-en">Privacy</span></a>
+      <button class="lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+    </span>
+  </nav>
+
+  <h1><span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span></h1>
+  <p class="lede"><span class="lang-zh">三分钟,从一个网页专题到一本 Kindle 电子书。</span><span class="lang-en">Three minutes from a web series to a Kindle ebook.</span></p>
+  <hr class="rule short">
+
+  <h2><span class="lang-zh">单 页 转 换</span><span class="lang-en">SINGLE PAGE</span></h2>
+  <div class="step"><div class="no">1</div><div>
+    <p><span class="lang-zh">打开想保存的网页,点击工具栏的 MD2EPUB 图标。</span><span class="lang-en">Open the page you want to keep and click the MD2EPUB icon in the toolbar.</span></p>
+  </div></div>
+  <div class="step"><div class="no">2</div><div>
+    <p><span class="lang-zh">顶部选择输出格式:<span class="ui">Markdown</span> 或 <span class="ui">EPUB</span>。</span><span class="lang-en">Pick an output format at the top: <span class="ui">Markdown</span> or <span class="ui">EPUB</span>.</span></p>
+    <p class="sub"><span class="lang-zh">默认"仅正文"会自动识别文章主体、去掉导航和广告;如果内容缺了,切换为"整个页面"。</span><span class="lang-en">"Main content only" auto-detects the article and strips navigation and ads; if something is missing, switch to "Entire page".</span></p>
+  </div></div>
+  <div class="step"><div class="no">3</div><div>
+    <p><span class="lang-zh">点 <span class="ui">转换并下载</span>,文件直接进下载文件夹。</span><span class="lang-en">Click <span class="ui">Convert &amp; download</span> — the file lands in your Downloads folder.</span></p>
+  </div></div>
+
+  <h2><span class="lang-zh">专 题 装 订(批 量)</span><span class="lang-en">SERIES BINDING (BATCH)</span></h2>
+  <div class="step"><div class="no">1</div><div>
+    <p><span class="lang-zh">打开专题的<strong>目录页</strong>——就是列出所有文章链接的那一页。</span><span class="lang-en">Open the series' <strong>index page</strong> — the one that lists links to every article.</span></p>
+  </div></div>
+  <div class="step"><div class="no">2</div><div>
+    <p><span class="lang-zh">切到 <span class="ui">批量整合</span> 标签,点 <span class="ui">1. 扫描本页文章链接</span>。</span><span class="lang-en">Switch to the <span class="ui">Batch merge</span> tab and click <span class="ui">1. Scan article links</span>.</span></p>
+    <p class="sub"><span class="lang-zh">插件会列出找到的文章数量和前几篇标题,确认没扫错再继续。</span><span class="lang-en">The extension shows how many articles it found and the first few titles — confirm before continuing.</span></p>
+  </div></div>
+  <div class="step"><div class="no">3</div><div>
+    <p><span class="lang-zh">点 <span class="ui">2. 开始整合并下载</span>,等进度条走完。</span><span class="lang-en">Click <span class="ui">2. Merge &amp; download</span> and let the progress bar finish.</span></p>
+    <p class="sub"><span class="lang-zh">可以放心切去别的标签页——任务在后台继续,插件图标上会显示进度,完成后自动下载并显示 ✓。</span><span class="lang-en">Feel free to switch tabs — the job keeps running in the background, the icon shows live progress, and the finished book downloads automatically with a ✓.</span></p>
+  </div></div>
+  <div class="step"><div class="no">4</div><div>
+    <p><span class="lang-zh">选 EPUB 格式时,首次会询问是否将图片嵌入书内(建议允许,离线阅读不缺图)。</span><span class="lang-en">With EPUB selected, you'll be asked once whether to embed images into the book (recommended — nothing missing offline).</span></p>
+  </div></div>
+
+  <h2><span class="lang-zh">送 进 Kindle</span><span class="lang-en">ONTO YOUR KINDLE</span></h2>
+  <div class="step"><div class="no">A</div><div>
+    <p><span class="lang-zh"><strong>Send to Kindle</strong>(所有 Kindle 机型):打开 amazon.com/sendtokindle,上传 EPUB,亚马逊自动转换并推送到设备。也可以用邮件或手机 App 发送。</span><span class="lang-en"><strong>Send to Kindle</strong> (all Kindle models): go to amazon.com/sendtokindle, upload the EPUB, and Amazon converts and delivers it to your device. Email and the mobile app work too.</span></p>
+  </div></div>
+  <div class="step"><div class="no">B</div><div>
+    <p><span class="lang-zh"><strong>Google Drive 导入</strong>(新款 Kindle Scribe):用插件的"保存到 Google Drive"存入云端,在 Scribe 上直接导入阅读。</span><span class="lang-en"><strong>Google Drive import</strong> (newer Kindle Scribe): use the extension's "Save to Google Drive", then import directly on your Scribe.</span></p>
+  </div></div>
+
+  <h2><span class="lang-zh">在 哪 些 网 站 效 果 最 好</span><span class="lang-en">WHERE IT WORKS BEST</span></h2>
+  <p><span class="lang-zh">MD2EPUB 为 <strong>Markdown 系网页</strong>而生——内容原本就是 Markdown 写成、结构规范的网站,转换效果最干净:</span><span class="lang-en">MD2EPUB is built for <strong>Markdown-born webpages</strong> — sites whose content was written in Markdown and rendered cleanly convert best:</span></p>
+  <ul class="sites">
+    <li>
+      <strong><span class="lang-zh">文档站</span><span class="lang-en">Documentation sites</span></strong>
+      <span><span class="lang-zh">VuePress、Docusaurus、GitBook、mdBook、Docsify 等框架搭建的技术文档和教程站——批量装订的最佳场景。</span><span class="lang-en">Docs and tutorial sites built with VuePress, Docusaurus, GitBook, mdBook, Docsify — the best case for batch binding.</span></span>
+    </li>
+    <li>
+      <strong><span class="lang-zh">技术博客</span><span class="lang-en">Tech blogs</span></strong>
+      <span><span class="lang-zh">Hexo、Hugo、Jekyll 等静态博客,以及大多数开发者个人网站。</span><span class="lang-en">Static blogs on Hexo, Hugo, Jekyll, and most developers' personal sites.</span></span>
+    </li>
+    <li>
+      <strong><span class="lang-zh">连载专栏</span><span class="lang-en">Serialized columns</span></strong>
+      <span><span class="lang-zh">带目录页的系列文章、课程讲义、开源书(如各类 "xxx-book" 项目的在线版)。</span><span class="lang-en">Article series with an index page, course notes, and open-source books published online.</span></span>
+    </li>
+    <li>
+      <strong><span class="lang-zh">知识库</span><span class="lang-en">Knowledge bases</span></strong>
+      <span><span class="lang-zh">公开的 Notion 页面、语雀文档等,单页转换通常表现良好。</span><span class="lang-en">Public Notion pages and similar tools usually convert well as single pages.</span></span>
+    </li>
+  </ul>
+
+  <div class="tip">
+    <span class="lang-zh"><strong>判断小窍门:</strong>页面干净、标题层级清楚、代码块和表格排版规范的网站,八成是 Markdown 渲染的。反之,重度动态加载的新闻门户和社交平台不是本插件的目标场景。</span>
+    <span class="lang-en"><strong>Rule of thumb:</strong> clean pages with clear heading levels and well-set code blocks and tables are almost certainly Markdown-rendered. Heavily dynamic news portals and social platforms are not what this extension is for.</span>
+  </div>
+
+  <h2><span class="lang-zh">常 见 问 题</span><span class="lang-en">FAQ</span></h2>
+  <dl class="faq">
+    <dt><span class="lang-zh">扫描找不到文章链接?</span><span class="lang-en">Scan finds no article links?</span></dt>
+    <dd><span class="lang-zh">确认你打开的是专题的目录页(列出各篇链接的那页),而不是某一篇文章内页。插件识别的是与当前页面同一目录路径下的链接。</span><span class="lang-en">Make sure you're on the series' index page (the one listing article links), not inside a single article. The extension detects links under the same directory path as the current page.</span></dd>
+    <dt><span class="lang-zh">转出来的内容缺了一块?</span><span class="lang-en">Some content is missing?</span></dt>
+    <dd><span class="lang-zh">把范围从"仅正文"切换为"整个页面"再试。个别网站的正文容器不规范,自动识别会漏。</span><span class="lang-en">Switch the scope from "Main content only" to "Entire page". A few sites use non-standard content containers that auto-detection misses.</span></dd>
+    <dt><span class="lang-zh">EPUB 里的图片没显示?</span><span class="lang-en">Images not showing in the EPUB?</span></dt>
+    <dd><span class="lang-zh">打包时选择允许嵌入图片;若曾拒绝过浏览器的图片访问授权,可在 chrome://extensions → MD2EPUB → 详情 → 网站访问权限中重新开启。</span><span class="lang-en">Allow image embedding when packaging. If you previously declined the browser's image-access permission, re-enable it under chrome://extensions → MD2EPUB → Details → Site access.</span></dd>
+    <dt><span class="lang-zh">文章顺序不对?</span><span class="lang-en">Articles in the wrong order?</span></dt>
+    <dd><span class="lang-zh">插件按标题或文件名中的数字序号排序(支持"第3章"、"03 - xxx"等格式);无序号的文章保持页面原顺序、排在最前。</span><span class="lang-en">Articles are sorted by the number in their title or filename ("Chapter 3", "03 - xxx", etc.); unnumbered ones keep page order and go first.</span></dd>
+  </dl>
+
+  <footer class="colophon">
+    <a href="index.html"><span class="lang-zh">返回首页</span><span class="lang-en">Home</span></a>
+    <a href="privacy.html"><span class="lang-zh">隐私政策</span><span class="lang-en">Privacy Policy</span></a>
+    <a href="mailto:support@limitlessladiesminds.com"><span class="lang-zh">联系我们</span><span class="lang-en">Contact</span></a>
+  </footer>
+
+</div>
+<script src="lang.js"></script>
+</body>
+</html>

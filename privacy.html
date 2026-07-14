@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-zh="隐私政策 — MD2EPUB" data-en="Privacy Policy — MD2EPUB">隐私政策 — MD2EPUB</title>
+<style>
+  :root {
+    --paper: #f5f2ea; --ink: #1f1d18; --ink-soft: #5c584e;
+    --binding: #2f6f4f; --ribbon: #f4c45c; --rule: #d9d3c4;
+  }
+  * { box-sizing: border-box; }
+  html.zh .lang-en { display: none !important; }
+  html.en .lang-zh { display: none !important; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.9; font-size: 16.5px;
+  }
+  body::after {
+    content: ""; position: fixed; top: 0; right: 9%;
+    width: 26px; height: 92px; background: var(--ribbon);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); z-index: 10;
+  }
+  .page { max-width: 660px; margin: 0 auto; padding: 0 24px 60px; }
+  .running {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--ink-soft); letter-spacing: .12em;
+    padding: 18px 0 10px; border-bottom: 1px solid var(--rule);
+  }
+  .running a { color: var(--ink-soft); text-decoration: none; }
+  .running a:hover { color: var(--binding); }
+  .lang-btn {
+    background: none; border: 1px solid var(--rule); border-radius: 4px;
+    color: var(--ink-soft); font: inherit; font-size: 12px;
+    padding: 2px 10px; cursor: pointer; letter-spacing: .08em; margin-left: 14px;
+  }
+  .lang-btn:hover { color: var(--binding); border-color: var(--binding); }
+  h1 { font-size: 28px; font-weight: 400; margin-top: 56px; }
+  h2 { font-size: 15px; letter-spacing: .25em; color: var(--binding); font-weight: 400; margin-top: 44px; }
+  .updated { color: var(--ink-soft); font-size: 14px; }
+  code {
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 14px; background: #fdfcf8; border: 1px solid var(--rule);
+    border-radius: 4px; padding: 1px 6px;
+  }
+  a { color: var(--binding); }
+  .colophon {
+    margin-top: 70px; padding-top: 26px; border-top: 1px solid var(--rule);
+    text-align: center; font-size: 14px; color: var(--ink-soft);
+  }
+  .colophon a { text-decoration: none; margin: 0 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="running">
+    <span><a href="index.html">MD2EPUB</a></span>
+    <span>
+      <a href="guide.html"><span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span></a> ·
+      <span class="lang-zh">隐私政策</span><span class="lang-en">Privacy</span>
+      <button class="lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+    </span>
+  </nav>
+
+  <div class="lang-en">
+<h1>MD2EPUB — Privacy Policy</h1>
+<p class="updated">Last updated: July 3, 2026</p>
+
+<p>MD2EPUB is a browser extension that converts webpages into Markdown or EPUB files. It is built around a simple principle: <strong>your content never leaves your device.</strong></p>
+
+<h2>Data We Collect</h2>
+<p><strong>None.</strong> MD2EPUB does not collect, transmit, sell, or share any personal data, browsing history, or page content. There are no analytics, no trackers, and no external servers operated by us.</p>
+
+<h2>How the Extension Works</h2>
+<ul>
+  <li><strong>Page conversion</strong> happens entirely locally in your browser. The content of a page is read only when you click the extension, and only to produce the Markdown/EPUB file you requested.</li>
+  <li><strong>Image embedding (optional)</strong>: if you choose to embed images into an EPUB, the extension fetches those images directly from their original hosts into memory, packages them into your file, and discards them. Nothing is stored or sent elsewhere.</li>
+  <li><strong>Settings</strong> (output format, last-used mode, image-embedding preference) are stored locally via Chrome's storage and may sync across your own devices through your Chrome account. We have no access to them.</li>
+</ul>
+
+<h2>Google Drive (Optional Feature)</h2>
+<p>If you choose to use "Save to Google Drive", the extension asks for your authorization through Google's official OAuth flow, using the minimal <code>drive.file</code> scope. This scope only allows the extension to create files in your Drive and access files it created itself — it cannot read, modify, or delete any of your other Drive content. Authentication tokens are managed by Chrome; we never see or store your Google credentials. You can revoke this access at any time at <a href="https://myaccount.google.com/permissions">Google Account permissions</a>.</p>
+
+<h2>Permissions Explained</h2>
+<ul>
+  <li><code>activeTab</code> / <code>scripting</code>: read and convert the current page, only when you click the extension.</li>
+  <li><code>downloads</code>: save generated files to your download folder.</li>
+  <li><code>storage</code>: keep your preferences.</li>
+  <li><code>offscreen</code>: build EPUB files in the background so conversions survive tab switches.</li>
+  <li><code>identity</code>: optional Google Drive authorization.</li>
+  <li>Host access (optional, runtime-only): fetch article images for embedding, requested only if you enable that feature.</li>
+</ul>
+
+<h2>Changes</h2>
+<p>If this policy changes, the updated version will be posted at this URL with a new date.</p>
+
+<h2>Contact</h2>
+<p>Questions about privacy: <a href="mailto:support@limitlessladiesminds.com">support@limitlessladiesminds.com</a><br>
+Limitless Ladies Minds Inc., Texas, USA</p>
+  </div>
+
+  <div class="lang-zh">
+<h1>MD2EPUB — 隐私政策</h1>
+<p class="updated">最后更新:2026 年 7 月 3 日</p>
+
+<p>MD2EPUB 是一款将网页转换为 Markdown 或 EPUB 文件的浏览器扩展,它的设计原则很简单:<strong>你的内容永远不离开你的设备。</strong></p>
+
+<h2>我们收集的数据</h2>
+<p><strong>无。</strong>MD2EPUB 不收集、传输、出售或共享任何个人数据、浏览历史或页面内容。没有统计分析、没有跟踪器、也没有我们运营的任何外部服务器。</p>
+
+<h2>扩展的工作方式</h2>
+<ul>
+  <li><strong>页面转换</strong>完全在你的浏览器本地进行。仅在你点击扩展时读取页面内容,且仅用于生成你所请求的 Markdown/EPUB 文件。</li>
+  <li><strong>图片嵌入(可选)</strong>:如果你选择将图片嵌入 EPUB,扩展会将图片从其原始服务器直接抓取到内存中,打包进你的文件后即释放,不会存储或发送到任何其他地方。</li>
+  <li><strong>设置项</strong>(输出格式、上次使用的模式、图片嵌入偏好)通过 Chrome 的存储机制保存在本地,并可能通过你自己的 Chrome 账号在你的设备间同步。我们无法访问这些数据。</li>
+</ul>
+
+<h2>Google Drive(可选功能)</h2>
+<p>如果你选择使用"保存到 Google Drive",扩展会通过 Google 官方 OAuth 流程请求你的授权,使用最小化的 <code>drive.file</code> 权限范围——它只允许扩展在你的 Drive 中创建文件、并访问它自己创建的文件,无法读取、修改或删除你 Drive 中的任何其他内容。授权凭据由 Chrome 管理,我们不会看到或存储你的 Google 账号信息。你可以随时在 <a href="https://myaccount.google.com/permissions">Google 账号权限页</a>撤销授权。</p>
+
+<h2>权限说明</h2>
+<ul>
+  <li><code>activeTab</code> / <code>scripting</code>:仅在你点击扩展时读取并转换当前页面。</li>
+  <li><code>downloads</code>:将生成的文件保存到你的下载文件夹。</li>
+  <li><code>storage</code>:保存你的偏好设置。</li>
+  <li><code>offscreen</code>:在后台构建 EPUB 文件,使转换不因切换标签页而中断。</li>
+  <li><code>identity</code>:可选的 Google Drive 授权。</li>
+  <li>主机访问权限(可选、仅运行时):仅在你启用图片嵌入功能时请求,用于抓取文章图片。</li>
+</ul>
+
+<h2>政策变更</h2>
+<p>如本政策有变更,更新版本将发布于本页面并标注新日期。</p>
+
+<h2>联系方式</h2>
+<p>隐私相关问题请联系:<a href="mailto:support@limitlessladiesminds.com">support@limitlessladiesminds.com</a><br>
+Limitless Ladies Minds Inc.,美国德克萨斯州</p>
+  </div>
+
+  <footer class="colophon">
+    <a href="index.html"><span class="lang-zh">返回首页</span><span class="lang-en">Home</span></a>
+    <a href="guide.html"><span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span></a>
+  </footer>
+</div>
+<script src="lang.js"></script>
+</body>
+</html>

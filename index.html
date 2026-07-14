@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-zh="MD2EPUB — 把网页装订成书" data-en="MD2EPUB — Bind the Web into Books">MD2EPUB — 把网页装订成书</title>
+<meta name="description" content="MD2EPUB is a Chrome extension that converts Markdown-born webpages into clean Markdown or EPUB ebooks — bind whole series for your Kindle. 把网页专题一键装订成 Kindle 电子书。">
+<style>
+  :root {
+    --paper: #f5f2ea; --ink: #1f1d18; --ink-soft: #5c584e;
+    --binding: #2f6f4f; --ribbon: #f4c45c; --rule: #d9d3c4;
+  }
+  * { box-sizing: border-box; }
+  html.zh .lang-en { display: none !important; }
+  html.en .lang-zh { display: none !important; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: Georgia, "Noto Serif SC", "Songti SC", "SimSun", serif;
+    line-height: 1.85; font-size: 17px;
+  }
+  body::after {
+    content: ""; position: fixed; top: 0; right: 9%;
+    width: 26px; height: 92px; background: var(--ribbon);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); z-index: 10;
+  }
+  .page { max-width: 660px; margin: 0 auto; padding: 0 24px; }
+  .running {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--ink-soft); letter-spacing: .12em;
+    padding: 18px 0 10px; border-bottom: 1px solid var(--rule);
+  }
+  .running a { color: var(--ink-soft); text-decoration: none; }
+  .running a:hover { color: var(--binding); }
+  .lang-btn {
+    background: none; border: 1px solid var(--rule); border-radius: 4px;
+    color: var(--ink-soft); font: inherit; font-size: 12px;
+    padding: 2px 10px; cursor: pointer; letter-spacing: .08em; margin-left: 14px;
+  }
+  .lang-btn:hover { color: var(--binding); border-color: var(--binding); }
+  .titlepage { text-align: center; padding: 88px 0 72px; }
+  .titlepage .ornament { color: var(--binding); letter-spacing: .5em; font-size: 14px; }
+  .titlepage h1 { font-size: 58px; font-weight: 400; letter-spacing: .04em; margin: 18px 0 6px; }
+  .titlepage .subtitle { font-size: 21px; color: var(--ink-soft); margin: 0 0 8px; }
+  .titlepage .tagline { font-size: 15px; color: var(--ink-soft); font-style: italic; }
+  .rule.short { border: none; border-top: 2px solid var(--binding); width: 88px; margin: 26px auto; }
+  .store-badge {
+    display: inline-flex; align-items: center; gap: 12px;
+    margin-top: 34px; padding: 13px 26px;
+    background: var(--ink); color: var(--paper);
+    text-decoration: none; border-radius: 6px;
+    font-family: -apple-system, "Segoe UI", "PingFang SC", sans-serif; font-size: 16px;
+  }
+  .store-badge:hover { background: var(--binding); }
+  .store-badge svg { width: 26px; height: 26px; }
+  .store-note { font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+  h2.chapter {
+    font-size: 15px; letter-spacing: .3em; color: var(--binding);
+    text-align: center; font-weight: 400; margin: 72px 0 34px;
+  }
+  .toc { list-style: none; padding: 0; margin: 0; }
+  .toc li { display: flex; align-items: baseline; gap: 14px; padding: 14px 0; border-bottom: 1px dotted var(--rule); }
+  .toc .no { font-size: 14px; color: var(--binding); min-width: 2.4em; }
+  .toc .what { flex: 1; }
+  .toc .what strong { font-weight: 600; }
+  .toc .what span { display: block; font-size: 15px; color: var(--ink-soft); }
+  .passage { margin: 56px 0; padding: 30px 34px; background: #fdfcf8; border: 1px solid var(--rule); border-radius: 4px; }
+  .passage p { margin: 0 0 12px; }
+  .passage .src { font-size: 13px; color: var(--ink-soft); font-style: italic; }
+  .colophon { margin-top: 90px; padding: 30px 0 44px; border-top: 1px solid var(--rule); text-align: center; font-size: 14px; color: var(--ink-soft); }
+  .colophon a { color: var(--binding); text-decoration: none; }
+  .colophon .links { margin-bottom: 10px; }
+  .colophon .links a { margin: 0 12px; }
+  /* signature: tear-away demo */
+  .demo-wrap { margin: 8px 0 60px; }
+  .demo {
+    position: relative; height: 172px; border-radius: 8px; overflow: hidden;
+    cursor: pointer; border: 1px solid var(--rule);
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .demo:focus-visible { outline: 2px solid var(--binding); outline-offset: 2px; }
+  .demo .web {
+    position: absolute; inset: 0; padding: 20px 24px; background: #e7e2d4;
+  }
+  .demo .web .url {
+    font-family: -apple-system, sans-serif; font-size: 10px;
+    letter-spacing: .14em; color: #8a8471; margin-bottom: 10px;
+  }
+  .demo .web i {
+    display: block; height: 9px; background: #c7c0ab; border-radius: 2px; margin-bottom: 9px;
+  }
+  .demo .web i.ad { background: #d8b98a; }
+  .demo .book {
+    position: absolute; inset: 0; background: #fffdf7; padding: 20px 24px;
+    clip-path: polygon(0 0, 32% 0, 26% 100%, 0 100%);
+    transition: clip-path .55s cubic-bezier(.4,0,.2,1);
+  }
+  .demo.torn .book { clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); }
+  .demo .book .chap {
+    font-family: Georgia, "Noto Serif SC", serif; font-size: 11px;
+    letter-spacing: .25em; color: var(--binding); margin-bottom: 12px;
+  }
+  .demo .book i {
+    display: block; height: 8px; background: var(--binding); opacity: .32;
+    border-radius: 2px; margin-bottom: 11px;
+  }
+  .demo .hint {
+    position: absolute; bottom: 10px; right: 12px;
+    font: 12px -apple-system, "PingFang SC", sans-serif; color: var(--ink-soft);
+    background: rgba(255,255,255,.75); padding: 3px 9px; border-radius: 5px;
+  }
+  .demo:not(.torn) .tear-torn { display: none; }
+  .demo.torn .tear-idle { display: none; }
+  @media (prefers-reduced-motion: reduce) { .demo .book { transition: none; } }
+  /* trademark callout */
+  .mark-note {
+    display: flex; gap: 12px; align-items: flex-start; margin: 0 0 70px;
+    padding: 16px 20px; background: #fdfcf8; border: 1px solid var(--ribbon);
+    border-radius: 6px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.65;
+  }
+  .mark-note .rb { color: #c99a2e; font-size: 16px; line-height: 1; }
+  @media (max-width: 540px) {
+    .titlepage h1 { font-size: 42px; }
+    body::after { right: 6%; height: 70px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .titlepage > * { animation: settle .7s ease both; }
+    .titlepage > *:nth-child(2) { animation-delay: .08s; }
+    .titlepage > *:nth-child(3) { animation-delay: .16s; }
+    .titlepage > *:nth-child(4) { animation-delay: .24s; }
+    .titlepage > *:nth-child(5) { animation-delay: .32s; }
+    .titlepage > *:nth-child(6) { animation-delay: .4s; }
+    @keyframes settle { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav class="running">
+    <span>MD2EPUB</span>
+    <span>
+      <a href="guide.html"><span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span></a> ·
+      <a href="privacy.html"><span class="lang-zh">隐私政策</span><span class="lang-en">Privacy</span></a>
+      <button class="lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+    </span>
+  </nav>
+
+  <header class="titlepage">
+    <div class="ornament">❦</div>
+    <h1>MD2EPUB</h1>
+    <p class="subtitle"><span class="lang-zh">把网页装订成书</span><span class="lang-en">Bind the web into books</span></p>
+    <p class="tagline"><span class="lang-zh">网页本是 Markdown 写的,就该用 Markdown 的方式带走。</span><span class="lang-en">Pages born in Markdown deserve to leave as Markdown.</span></p>
+    <hr class="rule short">
+    <!-- TODO: 上架后替换为正式商店链接 / replace with the real store URL after publishing -->
+    <a class="store-badge" href="https://chromewebstore.google.com/detail/REPLACE_WITH_EXTENSION_ID" rel="noopener">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="21" fill="#fff"/>
+        <path fill="#EA4335" d="M24 9.5c5.3 0 9.9 2.8 12.4 7l-10.7 0c-.6-.1-1.1-.1-1.7-.1-4.6 0-8.6 2.7-10.5 6.6L7.7 15C11 11.6 17 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M24 16.9c3.9 0 7.1 3.2 7.1 7.1 0 3.9-3.2 7.1-7.1 7.1s-7.1-3.2-7.1-7.1c0-3.9 3.2-7.1 7.1-7.1z"/>
+        <path fill="#FBBC05" d="M13.5 23.1c0-1.6.4-3.2 1-4.5L7.7 15C6 17.7 5 20.9 5 24.3 5 32.4 10.2 39.3 17.4 41.6l5.4-9.4c-5-0.6-9.3-4.4-9.3-9.1z"/>
+        <path fill="#34A853" d="M36.4 16.5c1.6 2.3 2.6 5.1 2.6 8.1 0 8-6.1 14.6-13.9 15.4l5.3-9.2c1.4-1.7 2.7-3.9 2.7-6.3 0-1.4-.3-2.8-.9-4l4.2-4z"/>
+      </svg>
+      <span class="lang-zh">前往 Chrome 应用商店安装</span><span class="lang-en">Install from the Chrome Web Store</span>
+    </a>
+    <p class="store-note"><span class="lang-zh">免费 · 全部在本地转换,内容不经过任何服务器</span><span class="lang-en">Free · Everything converts locally — your content never touches a server</span></p>
+  </header>
+
+  <div class="demo-wrap">
+    <div class="demo" id="tear-demo" tabindex="0" role="button" aria-pressed="false"
+         aria-label="Demo: tear away the webpage to reveal the book page">
+      <div class="web">
+        <div class="url">RANDOM-BLOG.EXAMPLE/POST-482</div>
+        <i style="width:82%"></i>
+        <i class="ad" style="width:34%"></i>
+        <i style="width:66%"></i>
+        <i style="width:90%"></i>
+        <i class="ad" style="width:24%"></i>
+        <i style="width:55%;margin-bottom:0"></i>
+      </div>
+      <div class="book">
+        <div class="chap">CHAPTER III</div>
+        <i style="width:70%"></i>
+        <i style="width:52%"></i>
+        <i style="width:78%"></i>
+        <i style="width:40%;margin-bottom:0"></i>
+      </div>
+      <div class="hint">
+        <span class="tear-idle"><span class="lang-zh">点击 → 撕开杂乱网页</span><span class="lang-en">Click → tear away the mess</span></span>
+        <span class="tear-torn"><span class="lang-zh">再点一下复原</span><span class="lang-en">Click to restore</span></span>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="chapter"><span class="lang-zh">目 录</span><span class="lang-en">CONTENTS</span></h2>
+  <ol class="toc">
+    <li><span class="no"><span class="lang-zh">壹</span><span class="lang-en">I</span></span><div class="what">
+      <strong><span class="lang-zh">单页转换</span><span class="lang-en">Single-page conversion</span></strong>
+      <span><span class="lang-zh">任意网页一键转为干净的 Markdown 或 EPUB,表格与代码块完整保留。</span><span class="lang-en">Turn any webpage into clean Markdown or EPUB — tables and code blocks fully preserved.</span></span>
+    </div></li>
+    <li><span class="no"><span class="lang-zh">贰</span><span class="lang-en">II</span></span><div class="what">
+      <strong><span class="lang-zh">专题装订</span><span class="lang-en">Series binding</span></strong>
+      <span><span class="lang-zh">在目录页扫描整个专题,自动按章节序号排列,几十篇文章合成一本书。</span><span class="lang-en">Scan a whole series from its index page — dozens of articles sorted by chapter number and merged into one book.</span></span>
+    </div></li>
+    <li><span class="no"><span class="lang-zh">叁</span><span class="lang-en">III</span></span><div class="what">
+      <strong><span class="lang-zh">完整目录</span><span class="lang-en">Real table of contents</span></strong>
+      <span><span class="lang-zh">标准 EPUB 目录,在 Kindle 上按目录键即可跳转任意一篇。</span><span class="lang-en">A standard EPUB TOC — jump to any article from your Kindle's contents menu.</span></span>
+    </div></li>
+    <li><span class="no"><span class="lang-zh">肆</span><span class="lang-en">IV</span></span><div class="what">
+      <strong><span class="lang-zh">图片离线</span><span class="lang-en">Offline images</span></strong>
+      <span><span class="lang-zh">可选择把所有插图嵌入书内,没有网络也不缺图。</span><span class="lang-en">Optionally embed every illustration into the book — nothing missing offline.</span></span>
+    </div></li>
+    <li><span class="no"><span class="lang-zh">伍</span><span class="lang-en">V</span></span><div class="what">
+      <strong><span class="lang-zh">后台装订</span><span class="lang-en">Background binding</span></strong>
+      <span><span class="lang-zh">切换标签页任务不中断,插件图标实时显示进度,装订完成自动下载。</span><span class="lang-en">Switch tabs freely — the icon shows live progress and the finished book downloads automatically.</span></span>
+    </div></li>
+    <li><span class="no"><span class="lang-zh">陆</span><span class="lang-en">VI</span></span><div class="what">
+      <strong><span class="lang-zh">存入 Drive</span><span class="lang-en">Save to Drive</span></strong>
+      <span><span class="lang-zh">可选功能:一键把成书存进你的 Google Drive,在 Kindle Scribe 上直接导入。</span><span class="lang-en">Optional: save the finished book to your Google Drive and import it directly on Kindle Scribe.</span></span>
+    </div></li>
+  </ol>
+
+  <h2 class="chapter"><span class="lang-zh">送 进 Kindle</span><span class="lang-en">ONTO YOUR KINDLE</span></h2>
+  <div class="passage">
+    <p class="lang-zh">装订好的 EPUB 是标准格式:通过 <strong>Send to Kindle</strong>(网页、邮件或 App)发送,亚马逊会自动完成转换并推送到你的设备;新款 <strong>Kindle Scribe</strong> 用户还可以从 Google Drive 直接导入。</p>
+    <p class="lang-en">The finished EPUB is a standard file: send it via <strong>Send to Kindle</strong> (web, email, or app) and Amazon converts and delivers it to your device automatically; newer <strong>Kindle Scribe</strong> owners can also import straight from Google Drive.</p>
+    <p class="src"><span class="lang-zh">—— 长夜漫漫,该读点长东西了。</span><span class="lang-en">— Long nights deserve long reads.</span></p>
+  </div>
+
+  <div class="mark-note">
+    <span class="rb">🔖</span>
+    <span>
+      <span class="lang-zh">MD2EPUB 为独立开发工具,与 Amazon 无关联,亦未获得其认可。Kindle 是 Amazon.com, Inc. 的商标,本站对其的提及仅为说明用途。</span>
+      <span class="lang-en">MD2EPUB is an independent tool — not affiliated with or endorsed by Amazon. Kindle is a trademark of Amazon.com, Inc.; mentions here are descriptive only.</span>
+    </span>
+  </div>
+
+  <footer class="colophon">
+    <div class="links">
+      <a href="guide.html"><span class="lang-zh">使用指南</span><span class="lang-en">How to Use</span></a>
+      <a href="privacy.html"><span class="lang-zh">隐私政策</span><span class="lang-en">Privacy Policy</span></a>
+      <a href="mailto:support@limitlessladiesminds.com"><span class="lang-zh">联系我们</span><span class="lang-en">Contact</span></a>
+    </div>
+    <div>MD2EPUB · Limitless Ladies Minds Inc.</div>
+  </footer>
+
+</div>
+<script src="lang.js"></script>
+<script>
+(function () {
+  var d = document.getElementById("tear-demo");
+  if (!d) return;
+  function toggle() {
+    var torn = d.classList.toggle("torn");
+    d.setAttribute("aria-pressed", torn ? "true" : "false");
+  }
+  d.addEventListener("click", toggle);
+  d.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+  });
+})();
+</script>
+</body>
+</html>
