@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --paper: #f5f2ea;
+    --card: #fdfcf8;
+    --ink: #1f1d18;
+    --ink-soft: #5c584e;
+    --muted: #8a8471;
+    --binding: #2f6f4f;
+    --rule: #d9d3c4;
+    --disabled: #b9b3a1;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    width: 300px; margin: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+    font-size: 13px;
+  }
+  /* header */
+  header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px 10px; border-bottom: 1px solid var(--rule);
+  }
+  header img { width: 20px; height: 20px; border-radius: 5px; flex: none; }
+  header .brand {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-size: 14px; letter-spacing: .02em; flex: 1;
+  }
+  .lang-btn {
+    font-size: 10.5px; color: var(--ink-soft); background: none;
+    border: 1px solid var(--rule); border-radius: 4px;
+    padding: 2px 7px; cursor: pointer; font-family: inherit;
+  }
+  .lang-btn:hover { color: var(--binding); border-color: var(--binding); }
+  /* format segmented buttons */
+  .fmt-row { display: flex; gap: 6px; padding: 10px 14px; }
+  .fmt {
+    flex: 1; padding: 7px 0; border-radius: 6px;
+    border: 1px solid var(--rule); background: transparent;
+    color: var(--ink-soft); font: 500 12px inherit; cursor: pointer;
+  }
+  .fmt.active {
+    border-color: var(--binding); background: var(--binding); color: var(--paper);
+  }
+  /* tabs */
+  .tabs { display: flex; padding: 0 14px; border-bottom: 1px solid var(--rule); }
+  .tab {
+    flex: 1; padding: 9px 0; border: none; background: none;
+    font: 400 12.5px inherit; color: var(--ink-soft);
+    border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px;
+  }
+  .tab.active { font-weight: 600; color: var(--ink); border-bottom-color: var(--binding); }
+  /* panels */
+  .panel { padding: 14px; }
+  .scope-row { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+  .scope-row input { margin: 0; accent-color: var(--binding); }
+  .scope-row label { font-size: 11.5px; color: var(--ink-soft); }
+  .btn-primary {
+    width: 100%; padding: 10px 0; border: none; border-radius: 6px;
+    background: var(--ink); color: var(--paper);
+    font: 600 13px inherit; cursor: pointer;
+  }
+  .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; }
+  .btn-outline {
+    width: 100%; padding: 9px 0; border: 1px solid var(--binding); border-radius: 6px;
+    background: none; color: var(--binding);
+    font: 600 12.5px inherit; cursor: pointer;
+  }
+  .btn-outline:disabled { border-color: var(--disabled); color: var(--disabled); cursor: not-allowed; }
+  .stack > * + * { margin-top: 10px; }
+  /* scan result card */
+  .result-card {
+    background: var(--card); border: 1px solid var(--rule); border-radius: 6px;
+    padding: 9px 10px; font-size: 11.5px; color: var(--ink-soft);
+  }
+  .result-card .count { font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .result-card .line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .result-card .more { color: var(--muted); }
+  /* progress */
+  .bar { height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+  .bar > div { height: 100%; width: 0%; background: var(--binding); transition: width .3s linear; }
+  /* status row */
+  .status-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 8px 14px; font-size: 11px; color: var(--ink-soft); min-height: 28px;
+  }
+  #status { flex: 1; }
+  #status.err { color: #b0413e; }
+  #status-side { flex: none; white-space: nowrap; }
+  #status-side.done { color: var(--binding); font-weight: 600; }
+  /* footer */
+  footer {
+    text-align: center; padding: 8px 0; border-top: 1px solid var(--rule);
+    font-size: 11px;
+  }
+  footer a { color: var(--ink-soft); text-decoration: none; }
+  footer a:hover { color: var(--binding); }
+</style>
+</head>
+<body>
+
+  <header>
+    <img src="icons/icon48.png" alt="">
+    <div class="brand">MD2EPUB</div>
+    <button class="lang-btn" id="lang-toggle" aria-label="Switch language">EN</button>
+  </header>
+
+  <div class="fmt-row">
+    <button class="fmt" id="fmt-md" data-fmt="md">Markdown</button>
+    <button class="fmt" id="fmt-epub" data-fmt="epub">EPUB</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="single" data-i18n="tabSingle"></button>
+    <button class="tab" data-tab="batch" data-i18n="tabBatch"></button>
+  </div>
+
+  <div class="panel stack" id="pane-single">
+    <div class="scope-row">
+      <input id="scope-article" type="checkbox" checked>
+      <label for="scope-article" data-i18n="scopeCheckbox"></label>
+    </div>
+    <button class="btn-primary" id="download"></button>
+    <button class="btn-outline" id="copy" data-i18n="btnCopy"></button>
+    <button class="btn-outline" id="drive" hidden data-i18n="btnDrive"></button>
+    <div class="bar" id="prog-single" hidden><div></div></div>
+  </div>
+
+  <div class="panel stack" id="pane-batch" hidden>
+    <button class="btn-outline" id="scan" data-i18n="btnScan"></button>
+    <div class="result-card" id="scan-result" hidden>
+      <div class="count" id="scan-count"></div>
+      <div class="line" id="scan-line1"></div>
+      <div class="line" id="scan-line2"></div>
+      <div class="more" id="scan-more" hidden>…</div>
+    </div>
+    <button class="btn-primary" id="merge" disabled data-i18n="btnMerge"></button>
+    <button class="btn-outline" id="merge-drive" hidden data-i18n="btnMergeDrive"></button>
+    <div class="bar" id="prog" hidden><div></div></div>
+  </div>
+
+  <div class="status-row">
+    <span id="status"></span>
+    <span id="status-side"></span>
+  </div>
+
+  <footer>
+    <a id="help-link" target="_blank" rel="noopener" data-i18n="helpLink"></a>
+  </footer>
+
+<script src="popup.bundle.js"></script>
+</body>
+</html>

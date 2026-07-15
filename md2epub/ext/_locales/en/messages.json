@@ -1,0 +1,269 @@
+{
+  "extName": {
+    "message": "MD2EPUB"
+  },
+  "extDesc": {
+    "message": "For Markdown-born webpages: docs & tech blogs. Grab a whole series back to Markdown, or bind it into an EPUB for your Kindle."
+  },
+  "fmtLabel": {
+    "message": "Output format"
+  },
+  "tabSingle": {
+    "message": "Single page"
+  },
+  "tabBatch": {
+    "message": "Batch merge"
+  },
+  "scopeArticle": {
+    "message": "Main content only (auto-detect)"
+  },
+  "scopeFull": {
+    "message": "Entire page"
+  },
+  "btnDownload": {
+    "message": "Convert & download ($ext$)",
+    "placeholders": {
+      "ext": {
+        "content": "$1"
+      }
+    }
+  },
+  "btnCopy": {
+    "message": "Convert & copy to clipboard"
+  },
+  "btnDrive": {
+    "message": "Save to Google Drive"
+  },
+  "batchHint": {
+    "message": "Works on series index pages — docs sites like VuePress / Docusaurus / GitBook, tutorial series, serialized blogs. Open the table-of-contents page, then scan."
+  },
+  "btnScan": {
+    "message": "1. Scan article links on this page"
+  },
+  "btnMerge": {
+    "message": "2. Merge & download"
+  },
+  "btnMergeDrive": {
+    "message": "Save collection to Google Drive"
+  },
+  "subTitle": {
+    "message": "Clean conversion · Batch-merge series into ebooks"
+  },
+  "statusConverting": {
+    "message": "Converting…"
+  },
+  "statusDownloaded": {
+    "message": "Download started ✓"
+  },
+  "statusCopied": {
+    "message": "Copied to clipboard ✓"
+  },
+  "errNoTab": {
+    "message": "No active tab found"
+  },
+  "errInternalPage": {
+    "message": "This page cannot be converted (browser internal page)"
+  },
+  "statusScanning": {
+    "message": "Scanning…"
+  },
+  "errNoLinks": {
+    "message": "No article links found under this directory"
+  },
+  "foundArticles": {
+    "message": "Found $count$ articles: $preview$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "preview": {
+        "content": "$2"
+      }
+    }
+  },
+  "statusProgress": {
+    "message": "($done$/$total$) $current$ (continues even if you switch tabs)",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      },
+      "current": {
+        "content": "$3"
+      }
+    }
+  },
+  "statusRunningBg": {
+    "message": "Merging in progress ($done$/$total$), continues even if you switch tabs",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "lastMergeDone": {
+    "message": "Previous merge finished ($count$ articles). Download or save to Drive.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "btnDownloadLast": {
+    "message": "Download last merge result"
+  },
+  "btnRemerge": {
+    "message": "Merge again & download"
+  },
+  "mergeDone": {
+    "message": "Merge complete, $count$ articles ✓",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusUploading": {
+    "message": "Uploading to Google Drive…"
+  },
+  "statusUploadingCollection": {
+    "message": "Uploading collection to Google Drive…"
+  },
+  "savedToDrive": {
+    "message": "Saved to Drive: $name$ ✓",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "collectionSavedToDrive": {
+    "message": "Collection saved to Drive: $name$ ✓",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "openInDrive": {
+    "message": "Open in Drive"
+  },
+  "collectionSuffix": {
+    "message": " Collection"
+  },
+  "imgConfirm": {
+    "message": "Packaging the EPUB will first fetch $count$ images into temporary memory so they can be embedded for offline reading.\n\nClick OK to allow, or Cancel to keep online image links (they may not display offline).",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "imgFetching": {
+    "message": "Fetching images $done$/$total$…",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "imgFailed": {
+    "message": "Images fetched; $count$ failed and keep online links",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "convertFailed": {
+    "message": "Conversion failed"
+  },
+  "authFailed": {
+    "message": "Authorization failed"
+  },
+  "driveUploadFailed": {
+    "message": "Drive upload failed ($code$): $msg$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      },
+      "msg": {
+        "content": "$2"
+      }
+    }
+  },
+  "readFileFailed": {
+    "message": "Failed to read file"
+  },
+  "srcLabel": {
+    "message": "Source"
+  },
+  "topicSource": {
+    "message": "Series source"
+  },
+  "fetchedAt": {
+    "message": "Fetched at"
+  },
+  "tocTitle": {
+    "message": "Table of Contents"
+  },
+  "totalArticles": {
+    "message": "$count$ articles in total",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "fetchFailed": {
+    "message": "Fetch failed: $msg$",
+    "placeholders": {
+      "msg": {
+        "content": "$1"
+      }
+    }
+  },
+  "collectionFallback": {
+    "message": "Collection"
+  },
+  "busyError": {
+    "message": "A task is already running"
+  },
+  "phasePacking": {
+    "message": "Packing EPUB…"
+  },
+  "imgPermDenied": {
+    "message": "Image access not granted — online image links will be kept"
+  },
+  "helpLink": {
+    "message": "How to use ↗"
+  },
+  "singleHint": {
+    "message": "Tip: Markdown-born sites (VuePress / GitBook docs, tech blogs) convert best. For a whole series, use the Batch merge tab."
+  },
+  "scopeCheckbox": {
+    "message": "Main content only (uncheck for entire page)"
+  },
+  "foundCount": {
+    "message": "Found $count$ articles",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "runningShort": {
+    "message": "Running in background"
+  },
+  "doneShort": {
+    "message": "✓ Done"
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "extName": {
+    "message": "MD2EPUB"
+  },
+  "extDesc": {
+    "message": "专为 Markdown 网页而生：文档站、技术博客整站抓回 Markdown，或装订成 EPUB 送进 Kindle，带目录和图片。"
+  },
+  "fmtLabel": {
+    "message": "输出格式"
+  },
+  "tabSingle": {
+    "message": "单页下载"
+  },
+  "tabBatch": {
+    "message": "批量整合"
+  },
+  "scopeArticle": {
+    "message": "仅正文（自动识别）"
+  },
+  "scopeFull": {
+    "message": "整个页面"
+  },
+  "btnDownload": {
+    "message": "转换并下载 ($ext$)",
+    "placeholders": {
+      "ext": {
+        "content": "$1"
+      }
+    }
+  },
+  "btnCopy": {
+    "message": "转换并复制到剪贴板"
+  },
+  "btnDrive": {
+    "message": "保存到 Google Drive"
+  },
+  "batchHint": {
+    "message": "适用于专题目录页——VuePress / Docusaurus / GitBook 等文档站、系列教程、连载博客。打开专题的目录页，再点扫描。"
+  },
+  "btnScan": {
+    "message": "1. 扫描本页文章链接"
+  },
+  "btnMerge": {
+    "message": "2. 开始整合并下载"
+  },
+  "btnMergeDrive": {
+    "message": "把合集存到 Google Drive"
+  },
+  "subTitle": {
+    "message": "干净转换 · 专题批量装订成书"
+  },
+  "statusConverting": {
+    "message": "正在转换…"
+  },
+  "statusDownloaded": {
+    "message": "已开始下载 ✓"
+  },
+  "statusCopied": {
+    "message": "已复制到剪贴板 ✓"
+  },
+  "errNoTab": {
+    "message": "找不到当前标签页"
+  },
+  "errInternalPage": {
+    "message": "此页面不支持转换（浏览器内部页面）"
+  },
+  "statusScanning": {
+    "message": "正在扫描…"
+  },
+  "errNoLinks": {
+    "message": "未找到同目录下的文章链接"
+  },
+  "foundArticles": {
+    "message": "找到 $count$ 篇：$preview$",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "preview": {
+        "content": "$2"
+      }
+    }
+  },
+  "statusProgress": {
+    "message": "($done$/$total$) $current$（切换标签页也会继续）",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      },
+      "current": {
+        "content": "$3"
+      }
+    }
+  },
+  "statusRunningBg": {
+    "message": "整合进行中 ($done$/$total$)，切换标签页也会继续",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "lastMergeDone": {
+    "message": "上次整合已完成（$count$ 篇），点击下载或存 Drive",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "btnDownloadLast": {
+    "message": "下载上次整合结果"
+  },
+  "btnRemerge": {
+    "message": "重新整合并下载"
+  },
+  "mergeDone": {
+    "message": "整合完成，共 $count$ 篇 ✓",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusUploading": {
+    "message": "正在上传到 Google Drive…"
+  },
+  "statusUploadingCollection": {
+    "message": "正在上传合集到 Google Drive…"
+  },
+  "savedToDrive": {
+    "message": "已保存到 Drive：$name$ ✓",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "collectionSavedToDrive": {
+    "message": "合集已保存到 Drive：$name$ ✓",
+    "placeholders": {
+      "name": {
+        "content": "$1"
+      }
+    }
+  },
+  "openInDrive": {
+    "message": "在 Drive 中打开"
+  },
+  "collectionSuffix": {
+    "message": " 合集"
+  },
+  "imgConfirm": {
+    "message": "打包 EPUB 需要先将 $count$ 张图片抓取到内存暂存，以便嵌入文件供离线阅读。\n\n点击「确定」允许抓取；点击「取消」则保留在线图片链接（离线时可能无法显示）。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "imgFetching": {
+    "message": "正在抓取图片 $done$/$total$…",
+    "placeholders": {
+      "done": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      }
+    }
+  },
+  "imgFailed": {
+    "message": "图片抓取完成，$count$ 张失败将保留在线链接",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "convertFailed": {
+    "message": "转换失败"
+  },
+  "authFailed": {
+    "message": "授权失败"
+  },
+  "driveUploadFailed": {
+    "message": "Drive 上传失败 ($code$): $msg$",
+    "placeholders": {
+      "code": {
+        "content": "$1"
+      },
+      "msg": {
+        "content": "$2"
+      }
+    }
+  },
+  "readFileFailed": {
+    "message": "读取文件失败"
+  },
+  "srcLabel": {
+    "message": "来源"
+  },
+  "topicSource": {
+    "message": "专题来源"
+  },
+  "fetchedAt": {
+    "message": "抓取时间"
+  },
+  "tocTitle": {
+    "message": "目录"
+  },
+  "totalArticles": {
+    "message": "共 $count$ 篇",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "fetchFailed": {
+    "message": "抓取失败: $msg$",
+    "placeholders": {
+      "msg": {
+        "content": "$1"
+      }
+    }
+  },
+  "collectionFallback": {
+    "message": "合集"
+  },
+  "busyError": {
+    "message": "已有任務在進行中"
+  },
+  "phasePacking": {
+    "message": "正在打包 EPUB…"
+  },
+  "imgPermDenied": {
+    "message": "未授予图片访问权限，将保留在线图片链接"
+  },
+  "helpLink": {
+    "message": "使用指南 ↗"
+  },
+  "singleHint": {
+    "message": "提示：Markdown 系网站（VuePress / GitBook 文档站、技术博客）转换效果最佳；要下载整个专题，请用「批量整合」。"
+  },
+  "scopeCheckbox": {
+    "message": "仅正文（取消勾选转换整个页面）"
+  },
+  "foundCount": {
+    "message": "找到 $count$ 篇文章",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "runningShort": {
+    "message": "后台运行中"
+  },
+  "doneShort": {
+    "message": "✓ 已完成"
+  }
+}
