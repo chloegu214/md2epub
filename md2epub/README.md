@@ -49,9 +49,9 @@ For local development, load the `ext/` folder as an unpacked extension at
 
 ## Placeholders to replace before release
 
-- `ext/manifest.json` → `oauth2.client_id`
-- `src/popup.js` → `HELP_URL` (official site)
-- `docs/index.html` → Chrome Web Store link (`REPLACE_WITH_EXTENSION_ID`)
+- `ext/manifest.json` → `oauth2.client_id` (only needed for the optional Drive upload)
+
+Published: https://chromewebstore.google.com/detail/md2epub/jjcieangkkenfkhicodnejbihflppiif
 
 ## License
 

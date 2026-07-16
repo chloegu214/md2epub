@@ -457,7 +457,7 @@ document.getElementById("merge-drive").addEventListener("click", async () => {
 });
 
 // ---------- init ----------
-const HELP_URL = "https://limitlessladiesminds.com/md2epub"; // TODO: swap for the live site
+const HELP_URL = "https://chloegu214.github.io/md2epub/";
 document.getElementById("help-link").href = HELP_URL;
 
 (async function init() {
