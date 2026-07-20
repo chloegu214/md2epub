@@ -1,6 +1,6 @@
 {
   "name": "md2epub",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "Chrome extension: convert Markdown-born webpages to Markdown/EPUB; batch-bind whole series for Kindle.",
   "scripts": {

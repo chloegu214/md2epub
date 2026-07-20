@@ -143,9 +143,77 @@ function convert(scope) {
   return { title, markdown: front + body + "\n" };
 }
 
+// ---------- site-specific handlers ----------
+//
+// Some platforms render their table of contents and lesson bodies in a way the
+// generic scanner mishandles (truncated titles, wrong content root, JS-driven
+// nav links). Each entry below plugs in a custom scanner + fetcher for one such
+// site. `match(loc)` decides if the handler applies to the current page.
+
+const SITE_HANDLERS = [
+  {
+    // Skilljar course platform (e.g. anthropic-partners.skilljar.com).
+    // The curriculum lives in <a class="lesson"> wrappers whose full titles sit
+    // in the child .lesson-row (the anchor text itself is polluted with icon /
+    // completion labels). Lesson bodies render inside #lesson-main-inner.
+    name: "skilljar",
+    match: (loc) => /(^|\.)skilljar\.com$/i.test(loc.hostname),
+    scan: () => {
+      const seen = new Set();
+      const links = [];
+      document.querySelectorAll("a.lesson[href]").forEach((a) => {
+        let u;
+        try { u = new URL(a.getAttribute("href"), location.href); } catch { return; }
+        if (u.origin !== location.origin) return;
+        const key = u.origin + u.pathname;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const row = a.querySelector(".lesson-row");
+        const title = (
+          row?.getAttribute("title") ||
+          row?.querySelector(".title")?.textContent ||
+          a.textContent ||
+          ""
+        ).replace(/\s+/g, " ").trim().slice(0, 200);
+        links.push({ url: key, title });
+      });
+      return links; // keep DOM order — it is the curriculum order
+    },
+    // Extract a single lesson from already-fetched HTML.
+    extract: (doc, url, hint) => {
+      let src = doc.querySelector("#lesson-main-inner") || doc.querySelector("#lesson-main") || doc.body;
+      const clone = src.cloneNode(true);
+      clone.querySelectorAll("#open-details-pane-button, .details-pane, nav, header, footer, script, style, noscript").forEach((n) => n.remove());
+      // Turn embedded players (YouTube etc.) into a plain link so they survive as markdown.
+      clone.querySelectorAll("iframe").forEach((fr) => {
+        const s = fr.getAttribute("src") || fr.getAttribute("data-src") || "";
+        const p = doc.createElement("p");
+        if (s) {
+          try { p.innerHTML = `🎬 <a href="${new URL(s, url).href}">${new URL(s, url).href}</a>`; }
+          catch { p.textContent = `🎬 ${s}`; }
+        }
+        fr.replaceWith(p);
+      });
+      const title = (
+        hint ||
+        doc.querySelector(".lesson-row.lesson-active .title, .lesson-row.lesson-active")?.textContent ||
+        doc.title ||
+        url
+      ).replace(/\s+/g, " ").trim();
+      return { clone, title };
+    },
+  },
+];
+
+function activeSiteHandler() {
+  return SITE_HANDLERS.find((h) => h.match(location)) || null;
+}
+
 // ---------- batch: scan links & merge a whole topic ----------
 
 function scanArticleLinks() {
+  const handler = activeSiteHandler();
+  if (handler) return handler.scan();
   // Same-origin links whose path lives under the current directory
   const dir = location.pathname.replace(/[^/]*$/, ""); // e.g. /ai/rag/
   const root = pickContentRoot();
@@ -187,20 +255,30 @@ function sortByNumber(links) {
   return [...unnumbered, ...numbered].map(({ _n, _i, ...l }) => l);
 }
 
-async function fetchAndConvert(url, td) {
+async function fetchAndConvert(url, td, hint) {
   const res = await fetch(url, { credentials: "include" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
 
-  let src = null;
-  for (const sel of ["article", "main", '[role="main"]', "#content", ".theme-hope-content", ".markdown-body"]) {
-    const el = doc.querySelector(sel);
-    if (el && el.textContent.trim().length > 100) { src = el; break; }
+  const handler = activeSiteHandler();
+  let clone, title;
+  if (handler && handler.extract) {
+    ({ clone, title } = handler.extract(doc, url, hint));
+  } else {
+    let src = null;
+    for (const sel of ["article", "main", '[role="main"]', "#content", ".theme-hope-content", ".markdown-body"]) {
+      const el = doc.querySelector(sel);
+      if (el && el.textContent.trim().length > 100) { src = el; break; }
+    }
+    if (!src) src = doc.body;
+    clone = src.cloneNode(true);
+    clone.querySelectorAll("nav, header, footer, aside, [role=navigation], .sidebar, .comments, .ad, [class*=advert], .page-meta, .page-nav").forEach((n) => n.remove());
+    title = (doc.querySelector("h1")?.textContent || doc.title || url).trim();
+    const firstH1 = clone.querySelector("h1");
+    if (firstH1) firstH1.remove(); // section heading already carries the title
   }
-  if (!src) src = doc.body;
-  const clone = src.cloneNode(true);
-  clone.querySelectorAll("nav, header, footer, aside, [role=navigation], .sidebar, .comments, .ad, [class*=advert], .page-meta, .page-nav").forEach((n) => n.remove());
+
   clone.querySelectorAll("a[href]").forEach((a) => {
     try { a.setAttribute("href", new URL(a.getAttribute("href"), url).href); } catch {}
   });
@@ -208,9 +286,6 @@ async function fetchAndConvert(url, td) {
     const s = img.getAttribute("src") || img.getAttribute("data-src") || "";
     try { if (s) img.setAttribute("src", new URL(s, url).href); } catch {}
   });
-  const title = (doc.querySelector("h1")?.textContent || doc.title || url).trim();
-  const firstH1 = clone.querySelector("h1");
-  if (firstH1) firstH1.remove(); // section heading already carries the title
   const body = td.turndown(clone.innerHTML).replace(/\n{3,}/g, "\n\n").trim();
   return { title, body };
 }
@@ -246,7 +321,7 @@ async function runBatch(links) {
     st.done = i; st.current = links[i].title;
     broadcast({ type: "PROGRESS", done: i, total: links.length, current: links[i].title });
     try {
-      const { title, body } = await fetchAndConvert(links[i].url, td);
+      const { title, body } = await fetchAndConvert(links[i].url, td, links[i].title);
       const anchor = `art-${i + 1}`;
       toc.push(`${i + 1}. [${title.replace(/[\[\]]/g, "")}](#${anchor})`);
       parts.push(`<a id="${anchor}"></a>\n\n## ${title}\n\n> ${ti("srcLabel")}: ${links[i].url}\n\n${body}`);
