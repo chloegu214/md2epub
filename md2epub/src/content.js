@@ -203,7 +203,230 @@ const SITE_HANDLERS = [
       return { clone, title };
     },
   },
+  {
+    // Mintlify-hosted docs (modelcontextprotocol.io, docs.anthropic.com, ...).
+    // Every page is also served as clean Markdown at the same path + ".md", so
+    // we skip the HTML→turndown round trip entirely and fetch the source instead.
+    // The sidebar (#navigation-items) already lists the pages in reading order.
+    name: "mintlify",
+    match: () =>
+      !!document.querySelector('meta[name="generator"][content="Mintlify" i]') ||
+      (!!document.querySelector("#navigation-items") &&
+        !!document.querySelector('link[rel="alternate"][type="text/markdown"]')),
+    scan: () => {
+      const nav = document.querySelector("#navigation-items") || document.querySelector("#sidebar-content");
+      if (!nav) return [];
+      const seen = new Set();
+      const links = [];
+      nav.querySelectorAll("a[href]").forEach((a) => {
+        let u;
+        try { u = new URL(a.getAttribute("href"), location.href); } catch { return; }
+        if (u.origin !== location.origin) return;
+        const key = u.origin + u.pathname.replace(/\/$/, "");
+        if (seen.has(key)) return;
+        seen.add(key);
+        links.push({ url: key, title: (a.textContent || "").replace(/\s+/g, " ").trim().slice(0, 200) });
+      });
+      return links; // DOM order is the documented reading order
+    },
+    // Fetch the Markdown source directly; returns null so the caller can fall
+    // back to HTML scraping if this page has no .md twin.
+    fetchMarkdown: async (url, hint) => {
+      const res = await fetch(url.replace(/\/$/, "") + ".md", { credentials: "include" });
+      if (!res.ok) return null;
+      if (!/text\/(markdown|plain)/i.test(res.headers.get("content-type") || "")) return null;
+      return cleanMintlifyMarkdown(await res.text(), hint, url);
+    },
+  },
+  {
+    // MkDocs Material sites (bojieli.github.io/ai-agent-book and many OSS docs).
+    // The left sidebar holds the whole page tree in reading order. Each page also
+    // links to its Markdown source on GitHub via the "edit this page" button —
+    // fetching that beats scraping the rendered HTML, whose code blocks are
+    // line-number tables that turndown flattens into unreadable pipes.
+    name: "mkdocs-material",
+    match: () =>
+      /mkdocs-material/i.test(
+        document.querySelector('meta[name="generator"]')?.getAttribute("content") || ""
+      ),
+    scan: () => {
+      const nav = document.querySelector(".md-nav--primary");
+      if (!nav) return [];
+      const seen = new Set();
+      const links = [];
+      nav.querySelectorAll("a.md-nav__link[href]").forEach((a) => {
+        const href = a.getAttribute("href") || "";
+        if (href.startsWith("#")) return; // headings of the page being viewed
+        let u;
+        try { u = new URL(href, location.href); } catch { return; }
+        if (u.origin !== location.origin) return;
+        const key = u.origin + u.pathname;
+        if (seen.has(key)) return;
+        seen.add(key);
+        // Nested spans carry icons; textContent alone is the readable label.
+        const title = (a.textContent || "").replace(/\s+/g, " ").trim().slice(0, 200);
+        links.push({ url: key, title });
+      });
+      return links; // sidebar order is the authored reading order
+    },
+    // The edit button points at /edit/<branch>/<path>.md in the source repo; its
+    // /raw/ twin is the original Markdown. Returns null when a page has no such
+    // link (edit_uri disabled) so the caller falls back to HTML scraping.
+    extractMarkdown: async (doc, url, hint) => {
+      const href = [...doc.querySelectorAll('a[href*="github.com/"]')]
+        .map((a) => a.getAttribute("href") || "")
+        .find((h) => /\/(edit|raw|blob)\/[^/]+\/.+\.md$/i.test(h));
+      if (!href) return null;
+      const raw = href.replace(/\/(edit|blob)\//, "/raw/");
+      const res = await fetch(raw);
+      if (!res.ok) return null;
+      const text = await res.text();
+      if (/^\s*<(!doctype|html)\b/i.test(text)) return null; // a login/404 page
+      return cleanPandocMarkdown(text, hint, raw);
+    },
+    // Fallback: the rendered article, minus Material's page furniture.
+    extract: (doc, url, hint) => {
+      const src = doc.querySelector(".md-content__inner") || doc.querySelector("article") || doc.body;
+      const clone = src.cloneNode(true);
+      clone.querySelectorAll(
+        ".md-content__button, .headerlink, .md-source-file, .md-feedback, .md-nav, nav, script, style"
+      ).forEach((n) => n.remove());
+      // Line-numbered code renders as a two-column table; keep only the code.
+      clone.querySelectorAll("table.highlighttable, table.highlight").forEach((t) => {
+        const code = t.querySelector("td.code pre, .code pre");
+        if (code) t.replaceWith(code);
+      });
+      const title = (hint || clone.querySelector("h1")?.textContent || doc.title || url)
+        .replace(/\s+/g, " ").trim();
+      clone.querySelector("h1")?.remove(); // the chapter heading already carries it
+      return { clone, title };
+    },
+  },
 ];
+
+// MDX containers whose body is meaningful but whose tag is not. Titled ones keep
+// their title as a bold lead-in; the rest just vanish.
+const MDX_PLAIN = "Frame|CodeGroup|Tabs|CardGroup|Steps|AccordionGroup|Columns|Expandable|Tooltip|Update";
+const MDX_TITLED = "Tab|Step|Accordion|ResponseField|ParamField|Card";
+const MDX_CALLOUT = "Note|Tip|Info|Warning|Danger|Check";
+
+/**
+ * Turn Mintlify's Markdown source into something an e-reader can render:
+ * drop the boilerplate preamble, unwrap MDX components, and absolutify links.
+ *
+ * Done line by line rather than with whole-document regexes because components
+ * wrap fenced code blocks (so open/close tags sit far apart) and because their
+ * bodies are indented — left alone, that indentation reads as a code block.
+ */
+function cleanMintlifyMarkdown(raw, hint, pageUrl) {
+  let md = raw.replace(/^﻿/, "").replace(/\r\n/g, "\n");
+  md = md.replace(/^---\n[\s\S]*?\n---\n/, "");   // YAML frontmatter
+  md = md.replace(/^(?:>[^\n]*\n)+\n/, "");        // "Documentation Index" preamble
+
+  // The first H1 names the chapter; the merged document adds its own heading.
+  let title = (hint || "").trim();
+  md = md.replace(/^#\s+(.+?)\n+/, (_m, h1) => { if (!title) title = h1.trim(); return ""; });
+
+  const open = new RegExp(`^\\s*<(${MDX_PLAIN}|${MDX_TITLED}|${MDX_CALLOUT})\\b([^>]*?)(/?)>\\s*$`);
+  const close = new RegExp(`^\\s*</(${MDX_PLAIN}|${MDX_TITLED}|${MDX_CALLOUT})>\\s*$`);
+  const stack = [];                                 // one entry per open container
+  const out = [];
+  let inFence = false;
+
+  for (const line of md.split("\n")) {
+    const dedented = stack.length ? line.replace(new RegExp(`^ {1,${stack.length * 2}}`), "") : line;
+    if (/^\s*(```|~~~)/.test(dedented)) inFence = !inFence;
+
+    // Everything inside a callout is quoted, so it survives as one block.
+    const quoted = (text) =>
+      stack.some((t) => new RegExp(`^(${MDX_CALLOUT})$`).test(t))
+        ? text.split("\n").map((l) => (l ? "> " + l : ">")).join("\n")
+        : text;
+
+    if (!inFence) {
+      const c = dedented.match(close);
+      if (c) { stack.pop(); out.push(""); continue; }
+      const o = dedented.match(open);
+      if (o) {
+        const [, tag, attrs, selfClosing] = o;
+        const lead = quoted(mdxLeadIn(tag, attrs, pageUrl));
+        if (!selfClosing) stack.push(tag);
+        out.push(lead);
+        continue;
+      }
+    }
+    out.push(quoted(inFence ? dedented : inlineMdx(dedented, pageUrl)));
+  }
+
+  const body = out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return { title: title || "untitled", body };
+}
+
+// The text a container's opening tag leaves behind.
+function mdxLeadIn(tag, attrs, pageUrl) {
+  const attr = (name) => (attrs.match(new RegExp(`\\b${name}="([^"]*)"`)) || [])[1] || "";
+  if (new RegExp(`^(${MDX_CALLOUT})$`).test(tag)) return `\n> **${tag}**`;
+  const title = attr("title");
+  if (!title) return "";
+  const href = attr("href");
+  return href ? `\n**[${title}](${absolutify(href, pageUrl)})**\n` : `\n**${title}**\n`;
+}
+
+// Tags and links that appear mid-line.
+function inlineMdx(line, pageUrl) {
+  return line
+    .replace(/<img\b[^>]*?\bsrc="([^"]*)"[^>]*?\/?>/g, (_m, src) => `![](${absolutify(src, pageUrl)})`)
+    .replace(new RegExp(`</?(${MDX_PLAIN}|${MDX_TITLED}|${MDX_CALLOUT}|Icon|Badge|Snippet)\\b[^>]*?/?>`, "g"), "")
+    .replace(/(\]\()(\/[^)\s]*)(\))/g, (_m, a, href, b) => a + absolutify(href, pageUrl) + b);
+}
+
+// Resolve every non-absolute target — including directory-relative ones like
+// "images/fig1-1.svg" — against the file the Markdown came from.
+function resolveAgainst(target, sourceUrl) {
+  if (!sourceUrl || /^(https?:|mailto:|data:|#)/i.test(target)) return target;
+  try { return new URL(target, sourceUrl).href; } catch { return target; }
+}
+
+// Site-root links ("/docs/learn/x") break once the page is inside an EPUB.
+function absolutify(href, pageUrl) {
+  if (!pageUrl || !href.startsWith("/")) return href;
+  try { return new URL(href, pageUrl).href; } catch { return href; }
+}
+
+/**
+ * Normalize Markdown written for a Pandoc/MkDocs book build:
+ * strip frontmatter, lift the H1 into the chapter title, drop the attribute
+ * blocks Pandoc uses on headings, and make relative links absolute so images
+ * survive being pulled out of the repo.
+ *
+ * Fences are tracked so that braces and paths inside code samples stay put.
+ */
+function cleanPandocMarkdown(raw, hint, sourceUrl) {
+  let md = raw.replace(/^﻿/, "").replace(/\r\n/g, "\n");
+  md = md.replace(/^---\n[\s\S]*?\n---\n/, ""); // YAML frontmatter
+
+  let title = (hint || "").trim();
+  md = md.replace(/^#\s+(.+?)\n+/, (_m, h1) => {
+    const clean = h1.replace(/\s*\{[^}]*\}\s*$/, "").trim();
+    if (!title) title = clean;
+    return "";
+  });
+
+  const out = [];
+  let inFence = false;
+  for (const line of md.split("\n")) {
+    if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; out.push(line); continue; }
+    if (inFence) { out.push(line); continue; }
+    out.push(
+      line
+        .replace(/^(#{1,6}\s+.*?)\s*\{[^}]*\}\s*$/, "$1")   // ## Heading {.unnumbered}
+        .replace(/(!?\[[^\]]*\]\()([^)\s]+)(\))/g, (_m, a, target, b) =>
+          a + resolveAgainst(target, sourceUrl) + b)
+    );
+  }
+
+  return { title: title || "untitled", body: out.join("\n").replace(/\n{3,}/g, "\n\n").trim() };
+}
 
 function activeSiteHandler() {
   return SITE_HANDLERS.find((h) => h.match(location)) || null;
@@ -256,12 +479,27 @@ function sortByNumber(links) {
 }
 
 async function fetchAndConvert(url, td, hint) {
+  const handler = activeSiteHandler();
+  if (handler && handler.fetchMarkdown) {
+    // Sites that publish a Markdown source need no conversion at all.
+    const direct = await handler.fetchMarkdown(url, hint);
+    if (direct) return direct;
+  }
+
   const res = await fetch(url, { credentials: "include" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const html = await res.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
 
-  const handler = activeSiteHandler();
+  // Some sites only reveal where their Markdown source lives once the page is
+  // parsed (an "edit this page" link), so this hook runs after the fetch.
+  if (handler && handler.extractMarkdown) {
+    try {
+      const direct = await handler.extractMarkdown(doc, url, hint);
+      if (direct) return direct;
+    } catch { /* fall through to HTML scraping */ }
+  }
+
   let clone, title;
   if (handler && handler.extract) {
     ({ clone, title } = handler.extract(doc, url, hint));
@@ -325,11 +563,13 @@ async function runBatch(links) {
       const anchor = `art-${i + 1}`;
       toc.push(`${i + 1}. [${title.replace(/[\[\]]/g, "")}](#${anchor})`);
       parts.push(`<a id="${anchor}"></a>\n\n## ${title}\n\n> ${ti("srcLabel")}: ${links[i].url}\n\n${body}`);
-      chapters.push({ title, markdown: `> ${ti("srcLabel")}: ${links[i].url}\n\n${body}` });
+      // In the EPUB the source belongs at the end — the reader wants the text
+      // first, and the chapter title is rendered from `title`.
+      chapters.push({ title, markdown: `${body}\n\n---\n\n*${ti("srcLabel")}: ${links[i].url}*` });
     } catch (e) {
       toc.push(`${i + 1}. ${links[i].title}（${ti("fetchFailed", e.message)}）`);
       parts.push(`## ${links[i].title}\n\n> ${ti("srcLabel")}: ${links[i].url}\n\n*${ti("fetchFailed", e.message)}*`);
-      chapters.push({ title: links[i].title, markdown: `> ${ti("srcLabel")}: ${links[i].url}\n\n*${ti("fetchFailed", e.message)}*` });
+      chapters.push({ title: links[i].title, markdown: `*${ti("fetchFailed", e.message)}*\n\n---\n\n*${ti("srcLabel")}: ${links[i].url}*` });
     }
     // no setTimeout pacing: background tabs throttle timers; serial fetching is pacing enough
   }

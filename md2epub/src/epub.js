@@ -20,19 +20,41 @@ function chapterXhtml(title, bodyHtml) {
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <head><title>${esc(title)}</title><link rel="stylesheet" type="text/css" href="style.css"/></head>
-<body><section epub:type="chapter">${bodyHtml}</section></body>
+<body><section epub:type="chapter">
+<h1>${esc(title)}</h1>
+${bodyHtml}</section></body>
 </html>`;
 }
 
+// Tuned for a 6" e-reader: the body text stays roomy while code and tables shrink
+// to fit, and nothing (long URLs, wide code) is allowed to run off the page.
+//
+// The body rule deliberately declares no font-family, font-size, line-height or
+// margin. Kindle treats any of those as publisher intent and greys out the
+// matching control in its typography menu, so a book that sets them is one the
+// reader cannot resize or respace. Everything below sizes in em, which scales
+// with whatever the reader picks.
 const CSS = `
-body { font-family: serif; line-height: 1.7; margin: 1em; }
-h1,h2,h3 { line-height: 1.3; }
-code { font-family: monospace; background: #f2f2f2; padding: 0 .2em; }
-pre { background: #f6f6f6; padding: .8em; overflow-x: auto; white-space: pre-wrap; }
-table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-th, td { border: 1px solid #999; padding: .4em .6em; text-align: left; }
-img { max-width: 100%; }
-blockquote { border-left: 3px solid #ccc; margin-left: 0; padding-left: 1em; color: #555; }
+body { overflow-wrap: break-word; }
+h1 { font-size: 1.5em; line-height: 1.25; margin: 0 0 1em; }
+h2 { font-size: 1.25em; line-height: 1.3; margin: 1.6em 0 .5em; }
+h3 { font-size: 1.1em; line-height: 1.3; margin: 1.3em 0 .4em; }
+h4, h5, h6 { font-size: 1em; line-height: 1.3; margin: 1.2em 0 .3em; }
+p { margin: .6em 0; }
+a { color: inherit; }
+code { font-family: monospace; font-size: .85em; background: #f2f2f2; padding: 0 .2em; }
+pre { background: #f6f6f6; padding: .6em; margin: .8em 0; white-space: pre-wrap; word-break: break-all; }
+pre code { font-size: .78em; background: none; padding: 0; line-height: 1.4; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .82em; table-layout: fixed; }
+th, td { border: 1px solid #999; padding: .35em .4em; text-align: left; }
+img { max-width: 100%; height: auto; }
+figure, p > img { display: block; margin: 1em auto; text-align: center; }
+ul, ol { margin: .6em 0; padding-left: 1.4em; }
+li { margin: .25em 0; }
+blockquote { border-left: 3px solid #ccc; margin: .8em 0 .8em 0; padding-left: .8em; color: #555; }
+blockquote pre { background: #eee; }
+hr { border: 0; border-top: 1px solid #ddd; margin: 1.5em 0; }
+.src { font-size: .8em; color: #777; }
 `;
 
 /**
@@ -129,6 +151,65 @@ export function collectImageUrls(chapters) {
   return [...urls];
 }
 
+// Kindle's renderer ignores SVG almost everywhere, so a book whose diagrams are
+// vector arrives with blank pages. Rasterizing at this width keeps figures sharp
+// on a 300ppi e-reader without bloating the file.
+const SVG_RASTER_WIDTH = 1400;
+const SVG_RASTER_MAX_HEIGHT = 2000;
+
+/**
+ * Draw an SVG into a PNG. Returns null when the SVG cannot be sized or decoded,
+ * in which case the caller keeps the original file.
+ *
+ * Chrome reports naturalWidth 0 for SVGs sized only by viewBox, so the intrinsic
+ * size is pinned onto the markup before handing it to the decoder.
+ */
+async function rasterizeSvg(blob) {
+  const svg = new DOMParser()
+    .parseFromString(await blob.text(), "image/svg+xml")
+    .documentElement;
+  if (!svg || svg.nodeName.toLowerCase() !== "svg") return null;
+
+  const viewBox = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
+  const attr = (name) => parseFloat(svg.getAttribute(name) || "");
+  const boxed = viewBox.length === 4 && viewBox.every(Number.isFinite);
+  // Percentage widths parse as NaN, which correctly falls through to the viewBox.
+  const w = Number.isFinite(attr("width")) ? attr("width") : boxed ? viewBox[2] : 0;
+  const h = Number.isFinite(attr("height")) ? attr("height") : boxed ? viewBox[3] : 0;
+  if (!(w > 0 && h > 0)) return null;
+
+  const scale = Math.min(SVG_RASTER_WIDTH / w, SVG_RASTER_MAX_HEIGHT / h);
+  const outW = Math.max(1, Math.round(w * scale));
+  const outH = Math.max(1, Math.round(h * scale));
+  if (!boxed) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.setAttribute("width", String(outW));
+  svg.setAttribute("height", String(outH));
+
+  const url = URL.createObjectURL(
+    new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" })
+  );
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error("svg decode failed"));
+      im.src = url;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext("2d");
+    // Diagrams draw in black with no background of their own; without this they
+    // vanish into the page on readers that invert or tint the background.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(img, 0, 0, outW, outH);
+    return await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /**
  * Fetch images and return { map: url -> {path, mime, blob}, failed: [url] }.
  * onProgress(done, total) is called as images finish.
@@ -141,8 +222,12 @@ export async function fetchImages(urls, onProgress) {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error("HTTP " + res.status);
-      const blob = await res.blob();
-      const mime = extToMime(url, blob.type);
+      let blob = await res.blob();
+      let mime = extToMime(url, blob.type);
+      if (mime === "image/svg+xml") {
+        const png = await rasterizeSvg(blob).catch(() => null);
+        if (png) { blob = png; mime = "image/png"; }
+      }
       const ext = { "image/jpeg": "jpg", "image/png": "png", "image/gif": "gif",
                     "image/webp": "webp", "image/svg+xml": "svg", "image/avif": "avif" }[mime] || "jpg";
       map.set(url, { path: `images/img${map.size + 1}.${ext}`, mime, blob });
