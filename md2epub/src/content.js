@@ -434,9 +434,9 @@ function activeSiteHandler() {
 
 // ---------- batch: scan links & merge a whole topic ----------
 
-function scanArticleLinks() {
+async function scanArticleLinks() {
   const handler = activeSiteHandler();
-  if (handler) return handler.scan();
+  if (handler) return await handler.scan();
   // Same-origin links whose path lives under the current directory
   const dir = location.pathname.replace(/[^/]*$/, ""); // e.g. /ai/rag/
   const root = pickContentRoot();
@@ -551,6 +551,13 @@ async function runBatch(links) {
   if (st.status === "running") return; // ignore duplicate starts
   st.status = "running"; st.done = 0; st.total = links.length; st.result = null; st.error = null;
 
+  // 书名必须在这里捕获：抓取过程中飞书 handler 会把标签页导航到别的文档，
+  // 等到最后再读 document.title 会得到最后一篇文章的标题。
+  // 飞书的 document.title 还塞满了零宽字符，一并清掉。
+  const bookTitle =
+    (document.title || "").replace(/[​﻿⁠]/g, "").trim() ||
+    ti("collectionFallback");
+
   const td = buildTurndown();
   const parts = [];
   const chapters = [];
@@ -574,12 +581,12 @@ async function runBatch(links) {
     // no setTimeout pacing: background tabs throttle timers; serial fetching is pacing enough
   }
   const head =
-    `# ${document.title || ti("collectionFallback")}\n\n` +
+    `# ${bookTitle}\n\n` +
     `> ${ti("topicSource")}: ${location.href}\n> ${ti("fetchedAt")}: ${new Date().toISOString()}\n> ${ti("totalArticles", links.length)}\n\n` +
     `## ${ti("tocTitle")}\n\n${toc.join("\n")}\n\n---\n\n`;
   st.status = "done"; st.done = links.length;
   st.result = {
-    title: document.title || ti("collectionFallback"),
+    title: bookTitle,
     markdown: head + parts.join("\n\n---\n\n") + "\n",
     chapters,
   };
@@ -593,7 +600,9 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onDisconnect.addListener(() => batchPorts.delete(port));
   port.onMessage.addListener((msg) => {
     if (msg.type === "SCAN") {
-      port.postMessage({ type: "LINKS", links: scanArticleLinks() });
+      scanArticleLinks()
+        .then((links) => port.postMessage({ type: "LINKS", links }))
+        .catch((e) => port.postMessage({ type: "LINKS", links: [], error: String(e && e.message || e) }));
     } else if (msg.type === "RUN") {
       runBatch(msg.links);
     } else if (msg.type === "GET_STATE") {
