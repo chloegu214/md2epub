@@ -2,6 +2,7 @@ const ti = (key, ...subs) => chrome.i18n.getMessage(key, subs.map(String)) || ke
 
 import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
+import { htbHandler } from "./htb.js";
 
 // ---------- helpers ----------
 
@@ -151,6 +152,8 @@ function convert(scope) {
 // site. `match(loc)` decides if the handler applies to the current page.
 
 const SITE_HANDLERS = [
+  // HTB Enterprise modules: TOC + section Markdown come from JSON APIs (see htb.js).
+  htbHandler,
   {
     // Skilljar course platform (e.g. anthropic-partners.skilljar.com).
     // The curriculum lives in <a class="lesson"> wrappers whose full titles sit
